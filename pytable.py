@@ -163,5 +163,5 @@ def create_shortcut(target_path, shortcut_path):
         print(f"Error creating shortcut: {e}")
 
 # Specify the base path where the folders should be created
-base_path = r"C:\Users\Krono\Desktop\PeriodicTable"  # Modify this path as necessary
+base_path = r"C:\Users\yourusername\Desktop\PeriodicTable"  # Modify this path as necessary
 create_element_folders(base_path)
