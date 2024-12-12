@@ -171,14 +171,21 @@ def create_shortcut(target_path, shortcut_path):
     - shortcut_path (str): The path where the shortcut will be created.
     """
     try:
-        # Create the shortcut name
+        # Convert paths to absolute paths for safety
+        target_path = os.path.abspath(target_path)
         shortcut_name = os.path.join(shortcut_path, "Next_Element.lnk")
         
+        # Check if the target exists
+        if not os.path.exists(target_path):
+            print(f"Warning: Target path does not exist: {target_path}")
+            return
+
         # Create a shortcut using the Dispatch library
         shell = Dispatch('WScript.Shell')
         shortcut = shell.CreateShortcut(shortcut_name)
         shortcut.TargetPath = target_path
         shortcut.WorkingDirectory = target_path
+        shortcut.IconLocation = target_path  # Optional: Set icon to the folder itself
         shortcut.Save()
         
         print(f"Shortcut created: {shortcut_name}")
@@ -186,6 +193,9 @@ def create_shortcut(target_path, shortcut_path):
     except Exception as e:
         print(f"Error creating shortcut: {e}")
 
+
 # Specify the base path where the folders should be created
 base_path = r"c:/Users/yourusername/path/Elements"  # Modify this path as necessary
 create_element_folders(base_path)
+
+
