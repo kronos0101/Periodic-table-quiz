@@ -3,7 +3,7 @@ from win32com.client import Dispatch
 
 # Full list of elements with their families, symbols, names, and electron configurations
 elements_with_details = [
-          ("Nonmetals", "H", "Hydrogen", 1, "1s1"),
+    ("Nonmetals", "H", "Hydrogen", 1, "1s1"),
     ("Noble Gases", "He", "Helium", 2, "1s2"),
     ("Alkali Metals", "Li", "Lithium", 3, "1s2 2s1"),
     ("Alkaline Earth Metals", "Be", "Beryllium", 4, "1s2 2s2"),
