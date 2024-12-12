@@ -123,10 +123,36 @@ elements_with_details = [
     ("Actinides", "Og", "Oganesson", 118, "1s2 2s2 2p6 3s2 3p6 3d10 4s2 4p6 4d10 4f14 5s2 5p6 5d10 5f14 6s2 6p6 6d10 7s2 7p6"),
 
 ]
+# Noble gases for shorthand notation
+noble_gases = {
+    2: "He",
+    10: "Ne",
+    18: "Ar",
+    36: "Kr",
+    54: "Xe",
+    86: "Rn",
+}
+
+def get_shorthand_electron_config(atomic_number, config):
+    """
+    Returns the shorthand (noble gas) electron configuration.
+    """
+    previous_noble_gas = ""
+    remaining_config = config
+
+    # Find the previous noble gas
+    for z, symbol in sorted(noble_gases.items(), reverse=True):
+        if atomic_number > z:
+            previous_noble_gas = f"[{symbol}]"
+            remaining_config = config.split(f"{symbol} ")[-1]  # Trim to get remaining config
+            break
+
+    return f"{previous_noble_gas} {remaining_config}".strip()
+
 
 def create_element_folders(base_path):
     """
-    Creates folders and configuration files for elements.
+    Creates folders and configuration files for elements with shorthand configurations.
     """
     try:
         # Ensure base path exists
@@ -145,9 +171,9 @@ def create_element_folders(base_path):
             symbol_folder_path = os.path.join(family_folder_path, symbol)
             os.makedirs(symbol_folder_path, exist_ok=True)
 
-            # Create Symbol+Config folder
-            short_config = config[-3:]
-            symbol_config_folder_name = f"{symbol}_{short_config}"
+            # Compute the shorthand electron configuration
+            shorthand_config = get_shorthand_electron_config(atomic_number, config)
+            symbol_config_folder_name = f"{symbol}_{shorthand_config.replace(' ', '_')}"
             symbol_config_folder_path = os.path.join(symbol_folder_path, symbol_config_folder_name)
             os.makedirs(symbol_config_folder_path, exist_ok=True)
 
@@ -158,7 +184,7 @@ def create_element_folders(base_path):
                 file.write(f"Symbol: {symbol}\n")
                 file.write(f"Atomic Number: {atomic_number}\n")
                 file.write(f"Family: {family}\n")
-                file.write(f"Electron Configuration: {config}\n")
+                file.write(f"Electron Configuration: {shorthand_config}\n")
 
             print(f"Created folder and configuration file for: {symbol} - {name}")
 
@@ -166,6 +192,7 @@ def create_element_folders(base_path):
 
     except Exception as e:
         print(f"Error during folder creation: {e}")
+
 
 def create_shortcuts(base_path):
     """
@@ -176,9 +203,9 @@ def create_shortcuts(base_path):
         
         # Create shortcuts
         for i, (family, symbol, name, atomic_number, config) in enumerate(elements_with_details):
-            short_config = config[-3:]
+            shorthand_config = get_shorthand_electron_config(atomic_number, config)
             current_symbol_config_folder_path = os.path.join(
-                periodic_table_folder, family, symbol, f"{symbol}_{short_config}"
+                periodic_table_folder, family, symbol, f"{symbol}_{shorthand_config.replace(' ', '_')}"
             )
 
             # Ensure the current folder exists
@@ -189,9 +216,9 @@ def create_shortcuts(base_path):
             # Create shortcut to the next element
             if i + 1 < len(elements_with_details):
                 next_family, next_symbol, next_name, next_atomic_number, next_config = elements_with_details[i + 1]
-                next_short_config = next_config[-3:]
+                next_shorthand_config = get_shorthand_electron_config(next_atomic_number, next_config)
                 next_symbol_config_folder_path = os.path.join(
-                    periodic_table_folder, next_family, next_symbol, f"{next_symbol}_{next_short_config}"
+                    periodic_table_folder, next_family, next_symbol, f"{next_symbol}_{next_shorthand_config.replace(' ', '_')}"
                 )
 
                 # Only create shortcut if the target folder exists
@@ -202,6 +229,7 @@ def create_shortcuts(base_path):
 
     except Exception as e:
         print(f"Error during shortcut creation: {e}")
+
 
 def create_shortcut(target_path, shortcut_path):
     """
