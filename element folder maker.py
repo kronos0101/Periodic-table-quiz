@@ -1,7 +1,7 @@
 import os
 from win32com.client import Dispatch
 
-# Full list of elements with their families, symbols, names, and electron configurations
+# Your element details
 elements_with_details = [
     ("Nonmetals", "H", "Hydrogen", 1, "1s1"),
     ("Noble Gases", "He", "Helium", 2, "1s2"),
@@ -126,41 +126,31 @@ elements_with_details = [
 
 def create_element_folders(base_path):
     """
-    Creates a structured folder hierarchy for the periodic table:
-    Periodic-Table\Family\Symbol\Symbol+last 3 characters of the config\Electron-configuration.txt
-    
-    Args:
-    - base_path (str): The root path where the folders will be created.
+    Creates folders and configuration files for elements.
     """
     try:
-        # Ensure the base_path exists
-        if not os.path.exists(base_path):
-            os.makedirs(base_path)
+        # Ensure base path exists
+        os.makedirs(base_path, exist_ok=True)
         
-        # Root folder for the periodic table
         periodic_table_folder = os.path.join(base_path, "Periodic-Table")
-        if not os.path.exists(periodic_table_folder):
-            os.makedirs(periodic_table_folder)
-        
-        # Process each element
-        for i, (family, symbol, name, atomic_number, config) in enumerate(elements_with_details):
-            # Create the Family folder
+        os.makedirs(periodic_table_folder, exist_ok=True)
+
+        # Create folders and configuration files
+        for family, symbol, name, atomic_number, config in elements_with_details:
+            # Create Family folder
             family_folder_path = os.path.join(periodic_table_folder, family)
-            if not os.path.exists(family_folder_path):
-                os.makedirs(family_folder_path)
-            
-            # Create the Symbol folder
+            os.makedirs(family_folder_path, exist_ok=True)
+
+            # Create Symbol folder
             symbol_folder_path = os.path.join(family_folder_path, symbol)
-            if not os.path.exists(symbol_folder_path):
-                os.makedirs(symbol_folder_path)
-            
-            # Create the Symbol+Config folder
-            short_config = config[-3:]  # Last 3 characters of the electron configuration
+            os.makedirs(symbol_folder_path, exist_ok=True)
+
+            # Create Symbol+Config folder
+            short_config = config[-3:]
             symbol_config_folder_name = f"{symbol}_{short_config}"
             symbol_config_folder_path = os.path.join(symbol_folder_path, symbol_config_folder_name)
-            if not os.path.exists(symbol_config_folder_path):
-                os.makedirs(symbol_config_folder_path)
-            
+            os.makedirs(symbol_config_folder_path, exist_ok=True)
+
             # Create the Electron-configuration.txt file
             config_file_path = os.path.join(symbol_config_folder_path, "Electron-configuration.txt")
             with open(config_file_path, "w") as file:
@@ -169,50 +159,75 @@ def create_element_folders(base_path):
                 file.write(f"Atomic Number: {atomic_number}\n")
                 file.write(f"Family: {family}\n")
                 file.write(f"Electron Configuration: {config}\n")
-            
+
             print(f"Created folder and configuration file for: {symbol} - {name}")
-            
-            # Create a shortcut to the next element's folder, if it exists
+
+        print("All folders and files created successfully.")
+
+    except Exception as e:
+        print(f"Error during folder creation: {e}")
+
+def create_shortcuts(base_path):
+    """
+    Creates shortcuts to the next element folder.
+    """
+    try:
+        periodic_table_folder = os.path.join(base_path, "Periodic-Table")
+        
+        # Create shortcuts
+        for i, (family, symbol, name, atomic_number, config) in enumerate(elements_with_details):
+            short_config = config[-3:]
+            current_symbol_config_folder_path = os.path.join(
+                periodic_table_folder, family, symbol, f"{symbol}_{short_config}"
+            )
+
+            # Ensure the current folder exists
+            if not os.path.exists(current_symbol_config_folder_path):
+                print(f"Warning: Folder does not exist: {current_symbol_config_folder_path}")
+                continue
+
+            # Create shortcut to the next element
             if i + 1 < len(elements_with_details):
                 next_family, next_symbol, next_name, next_atomic_number, next_config = elements_with_details[i + 1]
                 next_short_config = next_config[-3:]
                 next_symbol_config_folder_path = os.path.join(
                     periodic_table_folder, next_family, next_symbol, f"{next_symbol}_{next_short_config}"
                 )
-                create_shortcut(next_symbol_config_folder_path, symbol_config_folder_path)
+
+                # Only create shortcut if the target folder exists
+                if os.path.exists(next_symbol_config_folder_path):
+                    create_shortcut(next_symbol_config_folder_path, current_symbol_config_folder_path)
+                else:
+                    print(f"Next folder does not exist for {symbol}. Skipping shortcut creation.")
 
     except Exception as e:
-        print(f"Error: {e}")
-
+        print(f"Error during shortcut creation: {e}")
 
 def create_shortcut(target_path, shortcut_path):
     """
     Creates a shortcut to the target folder inside the given shortcut path.
-    
-    Args:
-    - target_path (str): The target folder path for the shortcut.
-    - shortcut_path (str): The path where the shortcut will be created.
     """
     try:
-        # Convert paths to absolute paths for safety
         target_path = os.path.abspath(target_path)
         shortcut_name = os.path.join(shortcut_path, "Next_Element.lnk")
         
-        # Check if the target exists
+        # Debug: Print paths
+        print(f"Creating shortcut: {shortcut_name} -> {target_path}")
+
+        # Check if target path exists
         if not os.path.exists(target_path):
             print(f"Warning: Target path does not exist: {target_path}")
             return
 
-        # Create a shortcut using the Dispatch library
+        # Create the shortcut
         shell = Dispatch('WScript.Shell')
         shortcut = shell.CreateShortcut(shortcut_name)
         shortcut.TargetPath = target_path
         shortcut.WorkingDirectory = target_path
-        shortcut.IconLocation = target_path  # Optional: Set icon to the folder itself
         shortcut.Save()
-        
+
         print(f"Shortcut created: {shortcut_name}")
-    
+
     except Exception as e:
         print(f"Error creating shortcut: {e}")
 
